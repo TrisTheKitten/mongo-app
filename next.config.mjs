@@ -1,12 +1,9 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = { 
+const nextConfig = {
+  basePath: "/app/stock",
+  experimental: {
+    instrumentationHook: true,
+  },
+};
 
-    experimental: { 
-  
-      instrumentationHook: true, 
-  
-    }, 
-  
-  }; 
-  
-  export default nextConfig;
+export default nextConfig;

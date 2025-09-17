@@ -1,9 +1,8 @@
 "use client";
 
-import React from "react";
-import { useForm } from "react-hook-form";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import { useForm } from "react-hook-form";
 
 
 const style = {
@@ -19,14 +18,15 @@ const style = {
 };
 
 export default function CategoryForm(handler) {
+  const { onSubmit } = handler || {};
   const { register, handleSubmit } = useForm();
   return (
     <Box sx={style}>
       <Typography id="modal-modal-title" variant="h6" component="h2">
-        Text in a modal
+        Create Category
       </Typography>
       <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-        <form onSubmit={handleSubmit(handler)}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-2 gap-4 w-fit m-4">
             <div>Category:</div>
             <div>

@@ -8,7 +8,7 @@ This app shows
 # Setup
 1. Define in .env the followings
 1.1 MONGODB_URI
-1.2 NEXT_PUBLIC_API_URL
+1.2 NEXT_PUBLIC_API_BASE
 
 ## Models
 
@@ -21,6 +21,9 @@ Product
 
 Category
 - name: String
+- order: Number (used for sorting in UI)
+
+Note: When updating a Mongoose schema, drop the affected collection and restart the Next.js server, because the driver caches models. Example: after adding `order` to `Category`, delete the `categories` collection and restart the dev server.
 
 ## Product API
 
@@ -83,3 +86,20 @@ Category
 - PUT `/api/category` with `{ "_id": "__OBJECT_ID__", "updateData": { ... } }`
 - PATCH `/api/category` with `{ "_id": "__OBJECT_ID__", "updateData": { ... } }`
 - DELETE `/api/category/[id]`
+
+
+
+## UI: DataGrid for Category
+
+### Install UI dependencies
+
+```bash
+pnpm add @mui/material @emotion/react @emotion/styled @mui/icons-material @mui/x-data-grid
+```
+
+### Usage notes
+
+- Category list at `app/v2/category/page.js` uses MUI DataGrid with a custom toolbar (`app/v2/components/CategoryGridToolbar.js`).
+- The DataGrid expects each row to have an `id`. API items are mapped from `_id` to `id`.
+- Quick filter, export, columns toggle, filter, and density controls are enabled in the toolbar.
+- Configure `NEXT_PUBLIC_API_BASE` in `.env` so the client fetches `/api/category` correctly.

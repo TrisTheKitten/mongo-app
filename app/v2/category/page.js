@@ -1,42 +1,41 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import CategoryForm from "@/app/v2/components/forms/CategoryForm";
-import Link from "next/link";
 
-import { DataGrid, GridToolbar , GridRowsProp, GridColDef } from "@mui/x-data-grid";
+import CustomToolbar from "@/app/v2/components/CategoryGridToolbar";
+import { DataGrid } from "@mui/x-data-grid";
 
 import Modal from "@mui/material/Modal";
 
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemText from "@mui/material/ListItemText";
-import ListItemAvatar from "@mui/material/ListItemAvatar";
-import Avatar from "@mui/material/Avatar";
-import ImageIcon from "@mui/icons-material/Image";
-import WorkIcon from "@mui/icons-material/Work";
-import BeachAccessIcon from "@mui/icons-material/BeachAccess";
 
-import IconButton from "@mui/material/IconButton";
 import AddBoxIcon from "@mui/icons-material/AddBox";
+import IconButton from "@mui/material/IconButton";
 
 export default function Home() {
   const [category, setCategory] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const DEFAULT_PAGE_SIZE = 10;
+  const PAGE_SIZE_OPTIONS = [5, 10, 25, 50];
+
   const columns = [
-    { field: "name", headerName: "Category Name", width: 150 },
-    // { field: 'col2', headerName: 'Column 2', width: 150 },
+    { field: "name", headerName: "Category Name", width: 220 },
+    { field: "order", headerName: "Order", width: 100, type: "number" },
   ];
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-  console.log(`${API_BASE}/category`);
+  const APIBASE = process.env.NEXT_PUBLIC_API_BASE;
+  console.log(`${APIBASE}/category`);
   async function fetchCategory() {
-    const data = await fetch(`${APIBASE}/category`);
-    const c = await data.json();
-    const c2 = c.map((category) => {
-      category.id = category._id;
-      return category;
-    });
-    setCategory(c2);
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${APIBASE}/category`);
+      const result = await response.json();
+      const mapped = result.map((item) => ({ ...item, id: item._id }));
+      setCategory(mapped);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const [open, setOpen] = useState(false);
@@ -47,31 +46,14 @@ export default function Home() {
     fetchCategory();
   }, []);
 
-  function handleCategoryFormSubmit(data) {
-    if (editMode) {
-      // data.id = data._id
-      fetch(`${APIBASE}/category`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }).then(() => {
-        reset({ name: '', order: '' })
-        fetchCategory()
-      });
-      return
-    }
-    fetch(`${APIBASE}/category`, {
+  async function handleCategoryFormSubmit(data) {
+    await fetch(`${APIBASE}/category`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-    }).then(() => {
-      reset({ name: '', order: '' })
-      fetchCategory()
     });
+    setOpen(false);
+    await fetchCategory();
   }
 
   return (
@@ -138,11 +120,16 @@ export default function Home() {
           <CategoryForm onSubmit={handleCategoryFormSubmit} />
         </Modal>
         <DataGrid
-          slots={{
-            toolbar: GridToolbar,
-          }}
           rows={category}
           columns={columns}
+          autoHeight
+          loading={isLoading}
+          disableRowSelectionOnClick
+          pageSizeOptions={PAGE_SIZE_OPTIONS}
+          initialState={{
+            pagination: { paginationModel: { page: 0, pageSize: DEFAULT_PAGE_SIZE } },
+          }}
+          slots={{ toolbar: CustomToolbar }}
         />
       </div>
     </main>
