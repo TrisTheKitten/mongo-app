@@ -8,7 +8,8 @@ This app shows
 # Setup
 1. Define in .env the followings
 1.1 MONGODB_URI
-1.2 NEXT_PUBLIC_API_BASE
+1.2 NEXT_PUBLIC_BASE_PATH (optional, matches Next.js basePath)
+1.3 NEXT_PUBLIC_API_BASE (optional, overrides API base URL)
 
 ## Models
 

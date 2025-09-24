@@ -3,9 +3,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import ResponsiveAppBar from "../components/ResponsiveAppBar";
+import { resolveApiBaseUrl } from "@/lib/apiBase";
 
 export default function Home() {
-  const APIBASE = process.env.NEXT_PUBLIC_API_BASE;
+  const APIBASE = resolveApiBaseUrl(
+    process.env.NEXT_PUBLIC_API_BASE,
+    process.env.NEXT_PUBLIC_BASE_PATH
+  );
   const { register, handleSubmit } = useForm();
   const [products, setProducts] = useState([]);
   const [category, setCategory] = useState([]);

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { resolveApiBaseUrl } from "@/lib/apiBase";
 
 import CategoryForm from "@/app/v2/components/forms/CategoryForm";
 
@@ -24,8 +25,10 @@ export default function Home() {
     { field: "order", headerName: "Order", width: 100, type: "number" },
   ];
 
-  const APIBASE = process.env.NEXT_PUBLIC_API_BASE;
-  console.log(`${APIBASE}/category`);
+  const APIBASE = resolveApiBaseUrl(
+    process.env.NEXT_PUBLIC_API_BASE,
+    process.env.NEXT_PUBLIC_BASE_PATH
+  );
   async function fetchCategory() {
     setIsLoading(true);
     try {

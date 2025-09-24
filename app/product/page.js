@@ -1,36 +1,53 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
+import { resolveApiBaseUrl } from "@/lib/apiBase";
 
 export default function Home() {
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
-  console.debug("API_BASE", API_BASE);
+  const apiBaseUrl = resolveApiBaseUrl(
+    process.env.NEXT_PUBLIC_API_BASE,
+    process.env.NEXT_PUBLIC_BASE_PATH
+  );
+  const productEndpoint = `${apiBaseUrl}/product`;
+  const categoryEndpoint = `${apiBaseUrl}/category`;
+
+  console.debug("API_BASE", apiBaseUrl);
   const { register, handleSubmit, reset } = useForm();
   const [products, setProducts] = useState([]);
   const [category, setCategory] = useState([]);
   const [editMode, setEditMode] = useState(false);
 
-  async function fetchProducts() {
-    const data = await fetch(`${API_BASE}/product`);
-    // const data = await fetch(`${API_BASE}/product`);
-    const p = await data.json();
-    setProducts(p);
-  }
+  const fetchProducts = useCallback(async () => {
+    const response = await fetch(productEndpoint, { cache: "no-store" });
+    if (!response.ok) {
+      console.error(`Failed to fetch products: ${response.status}`);
+      setProducts([]);
+      return;
+    }
+    const data = await response.json();
+    setProducts(data);
+  }, [productEndpoint]);
 
-  async function fetchCategory() {
-    const data = await fetch(`${API_BASE}/category`);
-    const c = await data.json();
-    setCategory(c);
-  }
+  const fetchCategory = useCallback(async () => {
+    const response = await fetch(categoryEndpoint, { cache: "no-store" });
+    if (!response.ok) {
+      console.error(`Failed to fetch categories: ${response.status}`);
+      setCategory([]);
+      return;
+    }
+    const data = await response.json();
+    setCategory(data);
+  }, [categoryEndpoint]);
 
   const handleAdd = (data) => {
-    fetch(`${API_BASE}/product`, {
+    const { _id, ...productPayload } = data;
+    fetch(productEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(productPayload),
     }).then(() => {
       fetchProducts();
       reset({ code: "", name: "", description: "", price: "", category: category[0]?._id || "" });
@@ -39,7 +56,7 @@ export default function Home() {
 
   const handleEdit = (data) => {
     const { _id, code, name, description, price, category: categoryId } = data;
-    fetch(`${API_BASE}/product`, {
+    fetch(productEndpoint, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -54,8 +71,12 @@ export default function Home() {
 
   const startEditMode = async (product) => {
     const id = product._id;
-    const res = await fetch(`${API_BASE}/product/${id}`, { cache: "no-store" });
-    const full = await res.json();
+    const response = await fetch(`${productEndpoint}/${id}`, { cache: "no-store" });
+    if (!response.ok) {
+      console.error(`Failed to fetch product ${id}: ${response.status}`);
+      return;
+    }
+    const full = await response.json();
     const formData = {
       _id: full._id,
       code: full.code,
@@ -75,17 +96,20 @@ export default function Home() {
 
   const deleteById = (id) => async () => {
     if (!confirm("Are you sure?")) return;
-    
-    await fetch(`${API_BASE}/product/${id}`, {
+    const response = await fetch(`${productEndpoint}/${id}`, {
       method: "DELETE",
     });
+    if (!response.ok) {
+      console.error(`Failed to delete product ${id}: ${response.status}`);
+      return;
+    }
     fetchProducts();
   }
 
   useEffect(() => {
     fetchCategory();
     fetchProducts();
-  }, []);
+  }, [fetchCategory, fetchProducts]);
 
   return (
     <div className="flex flex-row gap-4">

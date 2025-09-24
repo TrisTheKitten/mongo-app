@@ -1,39 +1,48 @@
-import Product from "@/models/Product";
+import Product from "@/models/Product"
+import dbConnect from "@/lib/db"
 
 export async function GET() {
-  return Response.json(await Product.find());
+  await dbConnect()
+
+  const products = await Product.find()
+  return Response.json(products)
 }
 
 export async function POST(request) {
-  const body = await request.json();
-  console.log(body)
-  const product = new Product(body);
-  await product.save();
-  return Response.json(product);
+  await dbConnect()
+
+  const body = await request.json()
+  const product = new Product(body)
+  await product.save()
+  return Response.json(product)
 }
 
 export async function PUT(request) {
-  const body = await request.json();
-  const { _id, updateData } = body;
+  await dbConnect()
+
+  const body = await request.json()
+  const { _id, updateData } = body
   if (!_id || !updateData || typeof updateData !== "object") {
-    return new Response("Invalid payload: expected {_id, updateData}", { status: 400 });
+    return new Response("Invalid payload: expected {_id, updateData}", { status: 400 })
   }
-  const product = await Product.findByIdAndUpdate(_id, updateData, { new: true });
+  const product = await Product.findByIdAndUpdate(_id, updateData, { new: true })
   if (!product) {
-    return new Response("Product not found", { status: 404 });
+    return new Response("Product not found", { status: 404 })
   }
-  return Response.json(product);
+  return Response.json(product)
 }
 
 export async function PATCH(request) {
-  const body = await request.json();
-  const { _id, updateData } = body;
+  await dbConnect()
+
+  const body = await request.json()
+  const { _id, updateData } = body
   if (!_id || !updateData || typeof updateData !== "object") {
-    return new Response("Invalid payload: expected {_id, updateData}", { status: 400 });
+    return new Response("Invalid payload: expected {_id, updateData}", { status: 400 })
   }
-  const product = await Product.findByIdAndUpdate(_id, updateData, { new: true });
+  const product = await Product.findByIdAndUpdate(_id, updateData, { new: true })
   if (!product) {
-    return new Response("Product not found", { status: 404 });
+    return new Response("Product not found", { status: 404 })
   }
-  return Response.json(product);
+  return Response.json(product)
 }

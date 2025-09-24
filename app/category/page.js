@@ -1,10 +1,18 @@
 "use client";
 import CategoryForm from "@/app/components/CategoryForm";
 import { DataGrid } from "@mui/x-data-grid";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { resolveApiBaseUrl } from "@/lib/apiBase";
+
 export default function Home() {
+
+  const apiBaseUrl = resolveApiBaseUrl(
+    process.env.NEXT_PUBLIC_API_BASE,
+    process.env.NEXT_PUBLIC_BASE_PATH
+  );
+  const categoryEndpoint = `${apiBaseUrl}/category`;
 
   const columns = [
     // { field: 'id', headerName: 'ID', width: 90 },
@@ -23,36 +31,39 @@ export default function Home() {
     },
   ]
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
-  console.log(process.env.NEXT_PUBLIC_API_BASE)
-
   const [categoryList, setCategoryList] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const { register, handleSubmit, reset } = useForm();
 
-  async function fetchCategory() {
-    const data = await fetch(`${API_BASE}/category`);
-    const c = await data.json();
-    const c2 = c.map((category) => {
+  const fetchCategory = useCallback(async () => {
+    const response = await fetch(categoryEndpoint, { cache: "no-store" });
+    if (!response.ok) {
+      console.error(`Failed to fetch categories: ${response.status}`);
+      setCategoryList([]);
+      return;
+    }
+    const categories = await response.json();
+    const formattedCategories = categories.map((category) => {
       return {
         ...category,
         id: category._id
       }
     })
-    setCategoryList(c2);
-  }
+    setCategoryList(formattedCategories);
+  }, [categoryEndpoint]);
 
   useEffect(() => {
     fetchCategory();
-  }, []);
+  }, [fetchCategory]);
 
   function handleAdd(data) {
-    fetch(`${API_BASE}/category`, {
+    const { _id, ...categoryPayload } = data;
+    fetch(categoryEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(categoryPayload),
     }).then(() => {
       fetchCategory();
       reset({ name: "", order: "" });
@@ -61,7 +72,7 @@ export default function Home() {
 
   function handleEdit(data) {
     const { _id, name, order } = data;
-    fetch(`${API_BASE}/category`, {
+    fetch(categoryEndpoint, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -75,8 +86,12 @@ export default function Home() {
 
   async function startEditMode(category) {
     const id = category._id;
-    const res = await fetch(`${API_BASE}/category/${id}`, { cache: "no-store" });
-    const full = await res.json();
+    const response = await fetch(`${categoryEndpoint}/${id}`, { cache: "no-store" });
+    if (!response.ok) {
+      console.error(`Failed to fetch category ${id}: ${response.status}`);
+      return;
+    }
+    const full = await response.json();
     reset(full);
     setEditMode(true);
   }
@@ -93,7 +108,7 @@ export default function Home() {
     if (!confirm(`Are you sure to delete [${category.name}]`)) return;
 
     const id = category._id
-    await fetch(`${API_BASE}/category/${id}`, {
+    await fetch(`${categoryEndpoint}/${id}`, {
       method: "DELETE"
     })
     fetchCategory()
