@@ -7,8 +7,8 @@ export default function BoxBasic() {
       <Box component="section" className="border border-gray-800 m-5 text-center">
         <h1 className="text-3xl text-violet-950">Stock Management v1.0</h1>
         <ul>
-          <li><Link href="/product">Products</Link></li>
-          <li><Link href="/category">Category</Link></li>
+          <li><Link href="stock/product">Products</Link></li>
+          <li><Link href="stock/category">Category</Link></li>
         </ul>
         
       </Box>
